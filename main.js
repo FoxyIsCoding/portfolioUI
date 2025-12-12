@@ -64,15 +64,27 @@ document.addEventListener("DOMContentLoaded", () => {
   let displayCount = 9;
 
   const fetchRepos = async () => {
-    const url = "https://api.github.com/users/FoxyIsCoding/repos?per_page=100&sort=updated";
-    const res = await fetch(url, {
-      headers: {
-        Accept: "application/vnd.github+json",
-        "X-GitHub-Api-Version": "2022-11-28"
+    try {
+      const url = "https://api.github.com/users/FoxyIsCoding/repos?per_page=100&sort=stars&direction=desc";
+      const res = await fetch(url, {
+        method: "GET",
+        headers: {
+          "Accept": "application/vnd.github.v3+json",
+          "User-Agent": "Portfolio-Site"
+        }
+      });
+      
+      if (!res.ok) {
+        console.error(`GitHub API error: ${res.status}`);
+        return [];
       }
-    });
-    const data = await res.json();
-    return Array.isArray(data) ? data : [];
+      
+      const data = await res.json();
+      return Array.isArray(data) ? data : [];
+    } catch (error) {
+      console.error("Failed to fetch repos:", error);
+      return [];
+    }
   };
 
   const formatTopics = (topics) => {
@@ -142,6 +154,116 @@ document.addEventListener("DOMContentLoaded", () => {
         renderRepos(repos);
       });
     }
+
+    // Fetch Discord status
+    const fetchDiscordStatus = async () => {
+      try {
+        const response = await fetch("https://api.lanyard.rest/v1/users/830732127984549929", {
+          method: "GET",
+          headers: {
+            "Accept": "application/json"
+          }
+        });
+        const data = await response.json();
+        if (data.success === false || !data.data) {
+          throw new Error("User not found on Lanyard");
+        }
+        return data.data;
+      } catch (error) {
+        console.error("Discord Lanyard error:", error);
+        // Return mock offline status as fallback
+        return {
+          discord_status: "offline",
+          activities: [],
+          spotify: null
+        };
+      }
+    };
+
+    const renderDiscordStatus = (status) => {
+      const statusEl = document.getElementById("discordStatus");
+      if (!statusEl) return;
+
+      const discordStatus = status?.discord_status || "offline";
+      const activities = status?.activities || [];
+      const listening = activities.find(a => a.type === 2); // Spotify
+      const playing = activities.find(a => a.type === 0); // Game
+
+      let statusIcon = "circle";
+      let statusText = "Offline";
+      let statusColor = "#999";
+      let statusBgColor = "rgba(153, 153, 153, 0.1)";
+
+      if (discordStatus === "online") {
+        statusIcon = "check_circle";
+        statusText = "Online";
+        statusColor = "#31a24c";
+        statusBgColor = "rgba(49, 162, 76, 0.15)";
+      } else if (discordStatus === "idle") {
+        statusIcon = "check_circle";
+        statusText = "Online";
+        statusColor = "#31a24c";
+        statusBgColor = "rgba(49, 162, 76, 0.15)";
+      } else if (discordStatus === "dnd") {
+        statusIcon = "do_not_disturb";
+        statusText = "Do Not Disturb";
+        statusColor = "#f04747";
+        statusBgColor = "rgba(240, 71, 71, 0.15)";
+      } else {
+        statusIcon = "circle";
+        statusText = "Offline";
+        statusColor = "#999";
+        statusBgColor = "rgba(153, 153, 153, 0.1)";
+      }
+
+      let activityHTML = "";
+      if (listening) {
+        activityHTML += `
+          <div class="activity spotify">
+            <div class="activity-icon">
+              <md-icon>music_note</md-icon>
+            </div>
+            <div class="activity-content">
+              <p class="activity-type">Listening to Spotify</p>
+              <p class="activity-name">${listening.details || "Unknown Track"}</p>
+              ${listening.state ? `<p class="activity-artist">${listening.state}</p>` : ""}
+            </div>
+          </div>
+        `;
+      }
+      if (playing) {
+        activityHTML += `
+          <div class="activity game">
+            <div class="activity-icon">
+              <md-icon>sports_esports</md-icon>
+            </div>
+            <div class="activity-content">
+              <p class="activity-type">Playing</p>
+              <p class="activity-name">${playing.name}</p>
+              ${playing.details ? `<p class="activity-details">${playing.details}</p>` : ""}
+            </div>
+          </div>
+        `;
+      }
+
+      statusEl.innerHTML = `
+        <div class="status-container">
+          <div class="status-header">
+            <div class="status-indicator" style="--status-color: ${statusColor}; --status-bg: ${statusBgColor}">
+              <md-icon>${statusIcon}</md-icon>
+            </div>
+            <div class="status-info">
+              <p class="status-label">Discord Status</p>
+              <p class="status-text">${statusText}</p>
+            </div>
+          </div>
+          ${activityHTML ? `<div class="activities">${activityHTML}</div>` : `<p class="no-activity">No active status</p>`}
+        </div>
+      `;
+    };
+
+    const discordStatus = await fetchDiscordStatus();
+    renderDiscordStatus(discordStatus);
 
     if (cursorEl) {
       let targetX = 0;
