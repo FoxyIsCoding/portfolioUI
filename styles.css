@@ -1,0 +1,57 @@
+@layer base, theme;
+
+@layer base {
+  :root {
+    --container-max: 960px;
+    --space-1: 8px;
+    --space-2: 16px;
+    --space-3: 24px;
+  }
+
+  html, body {
+    height: 100%;
+  }
+
+  body {
+    margin: 0;
+    font-family: Roboto, Arial, sans-serif;
+  }
+
+  .top-bar md-top-app-bar {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+  .container {
+    max-width: var(--container-max);
+    margin: 0 auto;
+    padding: var(--space-3);
+  }
+
+  .hero {
+    display: grid;
+    gap: var(--space-2);
+    margin-block: var(--space-3);
+  }
+
+  .cards {
+    display: grid;
+    gap: var(--space-2);
+  }
+
+  md-elevated-card .card-content {
+    display: grid;
+    gap: var(--space-2);
+    padding: var(--space-2);
+  }
+}
+
+@layer theme {
+  :root {
+    color-scheme: light;
+  }
+  :root.dark {
+    color-scheme: dark;
+  }
+}

@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Material 3 Demo</title>
+    <script type="module" src="/main.js"></script>
+    <link rel="stylesheet" href="/styles.css">
+  </head>
+  <body>
+    <header class="top-bar">
+      <md-top-app-bar>
+        <div slot="title">Material 3 Demo</div>
+        <md-icon-button slot="actionItems" aria-label="Settings">
+          <md-icon>settings</md-icon>
+        </md-icon-button>
+      </md-top-app-bar>
+    </header>
+    <main class="container">
+      <section class="hero">
+        <h1>Hello Material 3</h1>
+        <p>Simple site using Google Material 3 Web components.</p>
+        <md-filled-button id="actionBtn">Click Me</md-filled-button>
+        <md-switch id="themeToggle">Dark Mode</md-switch>
+      </section>
+      <section class="cards">
+        <md-elevated-card>
+          <div class="card-content">
+            <h2>Card Title</h2>
+            <p>This is a card built with Material Web.</p>
+            <md-tonal-button>Learn More</md-tonal-button>
+          </div>
+        </md-elevated-card>
+      </section>
+    </main>
+    <md-snackbar id="snackbar"></md-snackbar>
+  </body>
+</html>
