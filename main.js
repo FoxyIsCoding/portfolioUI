@@ -86,7 +86,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }, { passive: false });
 
-  // Custom cursor initialization
+  
   const cursorEl = document.getElementById("cursor");
   if (cursorEl) {
     let targetX = 0;

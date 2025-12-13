@@ -59,9 +59,21 @@
         font-size: 2.5rem;
         color: var(--md-sys-color-on-surface);
       }
+
+      .back-fab {
+        position: fixed;
+        bottom: var(--space-2xl);
+        left: var(--space-2xl);
+        z-index: 100;
+        cursor: pointer;
+      }
     </style>
   </head>
   <body>
+    <md-fab class="back-fab" onclick="window.location.href='/index.html'" aria-label="Back to Home">
+      <md-icon slot="icon">arrow_back</md-icon>
+    </md-fab>
+
     <div class="button-container">
       <h1>more cool stuff i have :3</h1>
       
