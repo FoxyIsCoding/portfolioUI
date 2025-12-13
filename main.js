@@ -20,42 +20,71 @@ document.addEventListener("DOMContentLoaded", () => {
     observer.observe(section);
   });
 
-  const delayedSmoothScroll = (target, { duration = 700, offset = 0 } = {}) => {
-    const element = document.querySelector(target);
+  const delayedSmoothScroll = (target, { duration = 900, offset = 0, easing = 'expoOut' } = {}) => {
+    const element = typeof target === 'string' ? document.querySelector(target) : target;
     if (!element) return;
     const start = window.scrollY;
     const rectTop = element.getBoundingClientRect().top + start - offset;
     const distance = rectTop - start;
     const startTime = performance.now();
-    const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3);
+    const easings = {
+      expoOut: (t) => t === 1 ? 1 : 1 - Math.pow(2, -10 * t),
+      cubicOut: (t) => 1 - Math.pow(1 - t, 3)
+    };
+    const ease = easings[easing] || easings.expoOut;
 
-    document.body.classList.add("scroll-blur-strong");
+    document.body.classList.add("scroll-motion-blur");
 
     const step = (now) => {
       const elapsed = now - startTime;
       const progress = Math.min(elapsed / duration, 1);
-      const eased = easeOutCubic(progress);
+      const eased = ease(progress);
       const current = start + distance * eased;
       window.scrollTo(0, current);
       if (progress < 1) {
         requestAnimationFrame(step);
       } else {
-        document.body.classList.remove("scroll-blur-strong");
+        document.body.classList.remove("scroll-motion-blur");
       }
     };
 
     requestAnimationFrame(step);
   };
 
+
   document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
     anchor.addEventListener("click", (e) => {
       e.preventDefault();
       const target = anchor.getAttribute("href");
       if (target && target !== "#") {
-        delayedSmoothScroll(target, { duration: 900, offset: 0 });
+        delayedSmoothScroll(target, { duration: 900, offset: 0, easing: 'expoOut' });
       }
     });
   });
+
+  let topScrollAccum = 0;
+  let topScrollLocked = false;
+  const topThreshold = 40;
+  
+  window.addEventListener('wheel', (e) => {
+    const heroEl = document.querySelector('.hero');
+    const heroRect = heroEl ? heroEl.getBoundingClientRect() : null;
+    const isInHero = heroRect && heroRect.bottom > window.innerHeight * 0.5;
+    
+    if (isInHero && !topScrollLocked && e.deltaY > 0) {
+      e.preventDefault();
+      topScrollAccum += e.deltaY;
+      
+      if (topScrollAccum >= topThreshold) {
+        topScrollLocked = true;
+        const next = document.querySelector('#work') || document.querySelector('section:nth-of-type(2)');
+        if (next) {
+          delayedSmoothScroll(next, { duration: 800, offset: 0, easing: 'expoOut' });
+        }
+        setTimeout(() => { topScrollAccum = 0; topScrollLocked = false; }, 1000);
+      }
+    }
+  }, { passive: false });
 
   const grid = document.getElementById("reposGrid");
   const loadMoreBtn = document.getElementById("loadMoreBtn");
@@ -155,7 +184,6 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     }
 
-    // Fetch Discord status
     const fetchDiscordStatus = async () => {
       try {
         const response = await fetch("https://api.lanyard.rest/v1/users/830732127984549929", {
@@ -171,7 +199,6 @@ document.addEventListener("DOMContentLoaded", () => {
         return data.data;
       } catch (error) {
         console.error("Discord Lanyard error:", error);
-        // Return mock offline status as fallback
         return {
           discord_status: "offline",
           activities: [],
@@ -186,8 +213,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const discordStatus = status?.discord_status || "offline";
       const activities = status?.activities || [];
-      const listening = activities.find(a => a.type === 2); // Spotify
-      const playing = activities.find(a => a.type === 0); // Game
+      const listening = activities.find(a => a.type === 2);
+      const playing = activities.find(a => a.type === 0);
 
       let statusIcon = "circle";
       let statusText = "Offline";
@@ -216,8 +243,37 @@ document.addEventListener("DOMContentLoaded", () => {
         statusBgColor = "rgba(153, 153, 153, 0.1)";
       }
 
+      const statusClass = discordStatus === "offline" ? "is-offline" : "is-active";
+
       let activityHTML = "";
       if (listening) {
+        let progressHTML = "";
+        
+        if (listening.timestamps?.start && listening.timestamps?.end) {
+          const now = Date.now();
+          const start = listening.timestamps.start;
+          const end = listening.timestamps.end;
+          const duration = end - start;
+          const elapsed = Math.max(0, Math.min(duration, now - start));
+          const progress = duration > 0 ? (elapsed / duration) * 100 : 0;
+          
+          const formatTime = (ms) => {
+            const seconds = Math.floor((ms / 1000) % 60);
+            const minutes = Math.floor((ms / 1000 / 60) % 60);
+            return `${minutes}:${seconds.toString().padStart(2, "0")}`;
+          };
+          
+          progressHTML = `
+            <div class="spotify-progress">
+              <md-linear-progress value="${(progress / 100).toFixed(3)}"></md-linear-progress>
+              <div class="spotify-time">
+                <span>${formatTime(elapsed)}</span>
+                <span>${formatTime(duration)}</span>
+              </div>
+            </div>
+          `;
+        }
+        
         activityHTML += `
           <div class="activity spotify">
             <div class="activity-icon">
@@ -227,6 +283,7 @@ document.addEventListener("DOMContentLoaded", () => {
               <p class="activity-type">Listening to Spotify</p>
               <p class="activity-name">${listening.details || "Unknown Track"}</p>
               ${listening.state ? `<p class="activity-artist">${listening.state}</p>` : ""}
+              ${progressHTML}
             </div>
           </div>
         `;
@@ -249,15 +306,17 @@ document.addEventListener("DOMContentLoaded", () => {
       statusEl.innerHTML = `
         <div class="status-container">
           <div class="status-header">
-            <div class="status-indicator" style="--status-color: ${statusColor}; --status-bg: ${statusBgColor}">
-              <md-icon>${statusIcon}</md-icon>
+            <div class="status-avatar">
+              <div class="status-indicator ${statusClass}" style="--status-color: ${statusColor}; --status-bg: ${statusBgColor}">
+                <md-icon>${statusIcon}</md-icon>
+              </div>
             </div>
             <div class="status-info">
               <p class="status-label">Discord Status</p>
               <p class="status-text">${statusText}</p>
             </div>
           </div>
-          ${activityHTML ? `<div class="activities">${activityHTML}</div>` : `<p class="no-activity">No active status</p>`}
+          ${activityHTML ? `<div class="activities">${activityHTML}</div>` : `<div class="no-activity"><p>No active status</p></div>`}
         </div>
       `;
     };
@@ -273,6 +332,36 @@ document.addEventListener("DOMContentLoaded", () => {
       const speed = 0.18;
 
       const raf = () => {
+    const prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const applyTilt = (selector) => {
+      if (prefersReduced) return;
+      const nodes = Array.from(document.querySelectorAll(selector));
+      nodes.forEach(node => {
+        let rafId = null;
+        const maxX = 6;
+        const maxY = 8;
+        const perspective = 800;
+        const onMove = (e) => {
+          const rect = node.getBoundingClientRect();
+          const x = e.clientX - rect.left;
+          const y = e.clientY - rect.top;
+          const rx = ((y / rect.height) - 0.5) * -maxX;
+          const ry = ((x / rect.width) - 0.5) * maxY;
+          cancelAnimationFrame(rafId);
+          rafId = requestAnimationFrame(() => {
+            node.style.transform = `perspective(${perspective}px) rotateX(${rx.toFixed(2)}deg) rotateY(${ry.toFixed(2)}deg)`;
+          });
+        };
+        const onLeave = () => {
+          cancelAnimationFrame(rafId);
+          node.style.transform = "";
+        };
+        node.addEventListener('mousemove', onMove);
+        node.addEventListener('mouseleave', onLeave);
+      });
+    };
+    applyTilt('.subtitle, h2');
+
         currentX += (targetX - currentX) * speed;
         currentY += (targetY - currentY) * speed;
         cursorEl.style.left = `${currentX}px`;
@@ -286,11 +375,155 @@ document.addEventListener("DOMContentLoaded", () => {
         targetY = e.clientY;
       });
 
-      const activators = Array.from(document.querySelectorAll("a, button, md-button, md-filled-button, md-outlined-button, md-text-button"));
+      window.addEventListener("mousedown", () => {
+        cursorEl.classList.add("click");
+      });
+      window.addEventListener("mouseup", () => {
+        cursorEl.classList.remove("click");
+      });
+
+      const activators = Array.from(document.querySelectorAll("a, button, md-button, md-filled-button, md-outlined-button, md-text-button, md-chip, md-chip-set, md-assist-chip, md-filter-chip, md-suggestion-chip"));
       activators.forEach(el => {
         el.addEventListener("mouseenter", () => cursorEl.classList.add("active"));
         el.addEventListener("mouseleave", () => cursorEl.classList.remove("active"));
       });
+    }
+
+    const heroNameEl = document.querySelector(".hero h1");
+    if (heroNameEl) {
+      const baseText = heroNameEl.textContent.trim();
+      const targetHoverText = "Matěj Bielik";
+      const prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      let flickerTimer = null;
+      let isAnimating = false;
+
+      const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+
+      const wrapText = (el, text) => {
+        const frag = document.createDocumentFragment();
+        for (const ch of text) {
+          const span = document.createElement("span");
+          span.className = "char";
+          span.textContent = ch;
+          frag.appendChild(span);
+        }
+        el.innerHTML = "";
+        el.appendChild(frag);
+      };
+
+      const scrambleTo = (finalText, duration = 900, interval = 45) => {
+        if (isAnimating) {
+          clearInterval(flickerTimer);
+          flickerTimer = null;
+        }
+        isAnimating = true;
+
+        if (prefersReduced) {
+          heroNameEl.textContent = finalText;
+          isAnimating = false;
+          return;
+        }
+
+        heroNameEl.classList.add("flicker");
+
+        wrapText(heroNameEl, finalText);
+        const chars = Array.from(heroNameEl.querySelectorAll(".char"));
+        let revealIndex = 0;
+        const totalLen = chars.length;
+        const totalFrames = Math.max(1, Math.round(duration / interval));
+        const framesPerLetter = Math.max(2, Math.floor(totalFrames / Math.max(1, totalLen)));
+        let frameCount = 0;
+
+        const skipSpacesForward = () => {
+          while (revealIndex < totalLen && (finalText[revealIndex] || "") === " ") {
+            const span = chars[revealIndex];
+            span.textContent = " ";
+            span.classList.remove("flicker");
+            span.style.setProperty("--blur", "0px");
+            span.style.setProperty("--op", "1");
+            span.style.setProperty("--scale", "1");
+            span.style.setProperty("--jitter", "0px");
+            revealIndex++;
+          }
+        };
+
+        skipSpacesForward();
+
+        flickerTimer = setInterval(() => {
+          frameCount++;
+          for (let i = 0; i < chars.length; i++) {
+            const span = chars[i];
+            const target = finalText[i] || "";
+            if (i < revealIndex) {
+              span.textContent = target;
+              span.classList.remove("flicker");
+              span.style.setProperty("--blur", "0px");
+              span.style.setProperty("--op", "1");
+              span.style.setProperty("--scale", "1");
+              span.style.setProperty("--jitter", "0px");
+              continue;
+            }
+            if (target === " ") {
+              span.textContent = " ";
+              span.classList.remove("flicker");
+              span.style.setProperty("--blur", "0px");
+              span.style.setProperty("--op", "1");
+              span.style.setProperty("--scale", "1");
+              span.style.setProperty("--jitter", "0px");
+              continue;
+            }
+            const rand = alphabet[Math.floor(Math.random() * alphabet.length)];
+            span.textContent = rand;
+            span.classList.add("flicker");
+            const blurPx = (1.6 + Math.random() * 2.4).toFixed(2);
+            span.style.setProperty("--blur", `${blurPx}px`);
+            span.style.setProperty("--op", (0.75 + Math.random() * 0.25).toFixed(2));
+            const scale = (1.04 + Math.random() * 0.12).toFixed(3);
+            const jitter = `${(Math.random() * 2 - 1).toFixed(2)}px`;
+            span.style.setProperty("--scale", scale);
+            span.style.setProperty("--jitter", jitter);
+          }
+
+          if (frameCount % framesPerLetter === 0) {
+            if (revealIndex < totalLen) {
+              const span = chars[revealIndex];
+              span.textContent = finalText[revealIndex] || "";
+              span.classList.remove("flicker");
+              span.style.setProperty("--blur", "0px");
+              span.style.setProperty("--op", "1");
+              span.style.setProperty("--scale", "1");
+              span.style.setProperty("--jitter", "0px");
+              revealIndex++;
+              skipSpacesForward();
+            }
+          }
+
+          if (revealIndex >= totalLen) {
+            clearInterval(flickerTimer);
+            flickerTimer = null;
+            heroNameEl.classList.remove("flicker");
+            isAnimating = false;
+          }
+        }, interval);
+      };
+
+      const finalizeText = (text) => {
+        if (flickerTimer) {
+          clearInterval(flickerTimer);
+          flickerTimer = null;
+        }
+        isAnimating = false;
+        heroNameEl.classList.remove("flicker");
+        heroNameEl.textContent = text;
+      };
+
+      heroNameEl.addEventListener("mouseenter", () => scrambleTo(targetHoverText, 900, 45));
+      heroNameEl.addEventListener("mouseleave", () => scrambleTo(baseText, 500, 45));
+      const heroSection = document.querySelector('.hero');
+      if (heroSection) {
+        heroSection.addEventListener("mouseleave", () => scrambleTo(baseText, 500, 45));
+        heroSection.addEventListener("pointerleave", () => scrambleTo(baseText, 500, 45));
+      }
     }
   };
 
