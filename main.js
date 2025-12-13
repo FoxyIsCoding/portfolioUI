@@ -86,10 +86,46 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }, { passive: false });
 
+  // Custom cursor initialization
+  const cursorEl = document.getElementById("cursor");
+  if (cursorEl) {
+    let targetX = 0;
+    let targetY = 0;
+    let currentX = 0;
+    let currentY = 0;
+    const speed = 0.18;
+
+    const raf = () => {
+      currentX += (targetX - currentX) * speed;
+      currentY += (targetY - currentY) * speed;
+      cursorEl.style.left = `${currentX}px`;
+      cursorEl.style.top = `${currentY}px`;
+      requestAnimationFrame(raf);
+    };
+    requestAnimationFrame(raf);
+
+    window.addEventListener("mousemove", (e) => {
+      targetX = e.clientX;
+      targetY = e.clientY;
+    });
+
+    window.addEventListener("mousedown", () => {
+      cursorEl.classList.add("click");
+    });
+    window.addEventListener("mouseup", () => {
+      cursorEl.classList.remove("click");
+    });
+
+    const activators = Array.from(document.querySelectorAll("a, button, md-button, md-filled-button, md-outlined-button, md-filled-tonal-button, md-text-button, md-chip, md-chip-set, md-assist-chip, md-filter-chip, md-suggestion-chip"));
+    activators.forEach(el => {
+      el.addEventListener("mouseenter", () => cursorEl.classList.add("active"));
+      el.addEventListener("mouseleave", () => cursorEl.classList.remove("active"));
+    });
+  }
+
   const grid = document.getElementById("reposGrid");
   const loadMoreBtn = document.getElementById("loadMoreBtn");
   const overlay = document.getElementById("loadingOverlay");
-  const cursorEl = document.getElementById("cursor");
   let displayCount = 9;
 
   const fetchRepos = async () => {
@@ -324,14 +360,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const discordStatus = await fetchDiscordStatus();
     renderDiscordStatus(discordStatus);
 
-    if (cursorEl) {
-      let targetX = 0;
-      let targetY = 0;
-      let currentX = 0;
-      let currentY = 0;
-      const speed = 0.18;
-
-      const raf = () => {
     const prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const applyTilt = (selector) => {
       if (prefersReduced) return;
@@ -361,33 +389,6 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     };
     applyTilt('.subtitle, h2');
-
-        currentX += (targetX - currentX) * speed;
-        currentY += (targetY - currentY) * speed;
-        cursorEl.style.left = `${currentX}px`;
-        cursorEl.style.top = `${currentY}px`;
-        requestAnimationFrame(raf);
-      };
-      requestAnimationFrame(raf);
-
-      window.addEventListener("mousemove", (e) => {
-        targetX = e.clientX;
-        targetY = e.clientY;
-      });
-
-      window.addEventListener("mousedown", () => {
-        cursorEl.classList.add("click");
-      });
-      window.addEventListener("mouseup", () => {
-        cursorEl.classList.remove("click");
-      });
-
-      const activators = Array.from(document.querySelectorAll("a, button, md-button, md-filled-button, md-outlined-button, md-text-button, md-chip, md-chip-set, md-assist-chip, md-filter-chip, md-suggestion-chip"));
-      activators.forEach(el => {
-        el.addEventListener("mouseenter", () => cursorEl.classList.add("active"));
-        el.addEventListener("mouseleave", () => cursorEl.classList.remove("active"));
-      });
-    }
 
     const heroNameEl = document.querySelector(".hero h1");
     if (heroNameEl) {

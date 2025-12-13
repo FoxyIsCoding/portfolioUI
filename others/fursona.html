@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>My Fursona - Foxyy</title>
+    <link rel="stylesheet" href="../styles.css" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+    <script type="module" src="https://esm.run/@material/web@latest/all.js"></script>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        min-height: 100vh;
+        background: var(--md-sys-color-surface);
+      }
+
+      .header {
+        padding: var(--space-2xl);
+        text-align: center;
+        border-bottom: 1px solid var(--md-sys-color-outline-variant);
+      }
+
+      .header h1 {
+        margin: 0;
+        font-size: 2.5rem;
+        color: var(--md-sys-color-on-surface);
+      }
+
+      .header p {
+        margin: var(--space-md) 0 0;
+        color: var(--md-sys-color-on-surface-variant);
+        font-size: 1.1rem;
+      }
+
+      .gallery-container {
+        display: flex;
+        flex-wrap: nowrap;
+        gap: var(--space-2xl);
+        padding: var(--space-2xl);
+        max-width: 1400px;
+        margin: 0 auto;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .fursona-card:nth-child(2) {
+        flex: 0 0 auto;
+      }
+
+      .fursona-card {
+        overflow: hidden;
+        border-radius: 16px;
+        background: var(--md-sys-color-surface-container);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        cursor: pointer;
+        flex: 0 0 300px;
+      }
+
+      .fursona-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+      }
+
+      .fursona-image {
+        width: 100%;
+        height: 300px;
+        object-fit: cover;
+        display: block;
+      }
+
+      .fursona-card:nth-child(2) .fursona-image {
+        height: auto;
+        width: auto;
+        max-width: 100%;
+        max-height: 400px;
+        object-fit: contain;
+      }
+
+      .fursona-info {
+        padding: var(--space-lg);
+      }
+
+      .fursona-info h3 {
+        margin: 0 0 var(--space-sm);
+        font-size: 1.25rem;
+        color: var(--md-sys-color-on-surface);
+      }
+
+      .fursona-info p {
+        margin: 0;
+        color: var(--md-sys-color-on-surface-variant);
+        font-size: 0.95rem;
+        line-height: 1.5;
+      }
+
+      .back-button {
+        margin: var(--space-xl);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <h1>My Fursona</h1>
+      <p>silly guy :3</p>
+    </div>
+
+    <div class="gallery-container">
+      <div class="fursona-card">
+        <img src="https://hc-cdn.hel1.your-objectstorage.com/s/v3/62ea245eb0f6fd96_screenshot_2025-12-13_161918.png" alt="Fursona 1" class="fursona-image" />
+        <div class="fursona-info">
+          <h3>sleepy</h3>
+        </div>
+      </div>
+
+      <div class="fursona-card">
+        <img src="https://hc-cdn.hel1.your-objectstorage.com/s/v3/5e86c848d2b2514b_screenshot_2025-12-13_182655.png" alt="Fursona 2" class="fursona-image" />
+        <div class="fursona-info">
+          <h3>Jace</h3>
+          <p>silly guy right?</p>
+        </div>
+      </div>
+
+      <div class="fursona-card">
+        <img src="https://hc-cdn.hel1.your-objectstorage.com/s/v3/d642926737763fbe_screenshot_2025-12-13_182719.png" alt="Fursona 3" class="fursona-image" />
+        <div class="fursona-info">
+          <h3>:3</h3>
+        </div>
+      </div>
+    </div>
+
+    <div class="back-button">
+      <md-text-button href="../cool-stuff.html">
+        <md-icon slot="icon">arrow_back</md-icon>
+        Back to Cool Stuff
+      </md-text-button>
+    </div>
+
+    <div id="cursor" class="cursor"></div>
+    <script type="module" src="../main.js"></script>
+  </body>
+</html>
