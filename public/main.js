@@ -116,7 +116,7 @@ document.addEventListener("DOMContentLoaded", () => {
       cursorEl.classList.remove("click");
     });
 
-    const activators = Array.from(document.querySelectorAll("a, button, md-button, md-filled-button, md-outlined-button, md-filled-tonal-button, md-text-button, md-chip, md-chip-set, md-assist-chip, md-filter-chip, md-suggestion-chip"));
+    const activators = Array.from(document.querySelectorAll("a, button, md-button, md-filled-button, md-outlined-button, md-filled-tonal-button, md-text-button, md-chip, md-chip-set, md-assist-chip, md-filter-chip, md-suggestion-chip, md-fab, md-extended-fab"));
     activators.forEach(el => {
       el.addEventListener("mouseenter", () => cursorEl.classList.add("active"));
       el.addEventListener("mouseleave", () => cursorEl.classList.remove("active"));
