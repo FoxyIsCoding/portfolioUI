@@ -189,7 +189,33 @@
         </div>
       </section>
       
+      <section class="guestbook">
+        <h2>Guestbook :3</h2>
+        <div id="guestbookContainer" class="guestbook-container">
+          <div class="guestbook-form">
+            <h3>Sign the guestbook!</h3>
+            <div class="form-group">
+              <label for="guestbook-name">Your Name</label>
+              <input id="guestbook-name" type="text" placeholder="Name" maxlength="100">
+            </div>
+            <div class="form-group">
+              <label for="guestbook-message">Your Message</label>
+              <textarea id="guestbook-message" placeholder="Leave a message... (max 500 chars)" maxlength="500"></textarea>
+            </div>
+            <md-filled-button>
+              <md-icon slot="icon">edit</md-icon>
+              Submit
+            </md-filled-button>
+          </div>
+          <div class="guestbook-entries"></div>
+        </div>
+      </section>
     </main>
+    
+    <script type="module">
+      import { Guestbook } from './guestbook.js';
+      new Guestbook('guestbookContainer');
+    </script>
     <footer class="footer-large">
       <div class="footer-large-inner">
         <div class="footer-brand">MB</div>
