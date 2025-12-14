@@ -1,47 +1,43 @@
-const BLOCKED_WORDS = [
-  'badword1',
-  'badword2',
-  'slur',
+let BLOCKED_WORDS = [];
+let profanityLoaded = false;
 
-];
+async function loadProfanityList() {
+  if (profanityLoaded) return;
+  
+  try {
+    const response = await fetch('https://raw.githubusercontent.com/dsojevic/profanity-list/refs/heads/main/en.json');
+    const data = await response.json();
+    BLOCKED_WORDS = Array.isArray(data) ? data : Object.keys(data);
+    profanityLoaded = true;
+    console.log(`Loaded ${BLOCKED_WORDS.length} profanity words`);
+  } catch (error) {
+    console.error('Failed to load profanity list:', error);
+    BLOCKED_WORDS = [];
+    profanityLoaded = true;
+  }
+}
 
-export function checkAutomod(text) {
+export async function checkAutomod(text) {
+  if (!profanityLoaded) {
+    await loadProfanityList();
+  }
+
   const lowerText = text.toLowerCase();
   
-  
   for (const word of BLOCKED_WORDS) {
-    const regex = new RegExp(`\\b${word}\\b`, 'gi');
-    if (regex.test(lowerText)) {
-      return {
-        approved: false,
-        reason: 'Message contains inappropriate content'
-      };
+    if (!word) continue;
+    try {
+      const escapedWord = word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const regex = new RegExp(`\\b${escapedWord}\\b`, 'gi');
+      if (regex.test(lowerText)) {
+        return {
+          approved: false,
+          reason: 'Message contains inappropriate content'
+        };
+      }
+    } catch (e) {
+      continue;
     }
-  }
-
-  
-  const capsRatio = (text.match(/[A-Z]/g) || []).length / text.length;
-  if (capsRatio > 0.7 && text.length > 10) {
-    return {
-      approved: false,
-      reason: 'Message appears to be spam'
-    };
-  }
-
-  
-  if (/(.)\1{9,}/.test(text)) {
-    return {
-      approved: false,
-      reason: 'Message appears to be spam'
-    };
-  }
-
-  
-  if (text.length < 3 || text.length > 500) {
-    return {
-      approved: false,
-      reason: 'Message must be between 3 and 500 characters'
-    };
   }
 
   return {

@@ -88,7 +88,7 @@ export default async function handler(req, res) {
         const sanitizedName = sanitizeMessage(name);
         const sanitizedMessage = sanitizeMessage(message);
 
-        const modCheck = checkAutomod(sanitizedMessage);
+        const modCheck = await checkAutomod(sanitizedMessage);
         if (!modCheck.approved) {
           return res.status(400).json({ error: modCheck.reason });
         }
