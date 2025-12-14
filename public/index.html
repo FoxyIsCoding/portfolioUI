@@ -192,8 +192,26 @@
       <section class="guestbook">
         <h2>Guestbook :3</h2>
         <div id="guestbookContainer" class="guestbook-container">
-          <div class="guestbook-form">
+          <div style="display: flex; justify-content: center; margin-bottom: var(--space-3xl);">
+            <md-filled-button id="openGuestbookBtn" class="sign-button">
+              <md-icon slot="icon">edit</md-icon>
+              Sign
+            </md-filled-button>
+          </div>
+          <div class="guestbook-entries"></div>
+        </div>
+      </section>
+
+      <div id="guestbookModal" class="guestbook-modal">
+        <div class="modal-backdrop"></div>
+        <div class="modal-content">
+          <div class="modal-header">
             <h3>Sign the guestbook!</h3>
+            <md-icon-button id="closeGuestbookBtn">
+              <md-icon>close</md-icon>
+            </md-icon-button>
+          </div>
+          <div class="guestbook-form">
             <div class="form-group">
               <label for="guestbook-name">Your Name</label>
               <input id="guestbook-name" type="text" placeholder="Name" maxlength="100">
@@ -202,14 +220,13 @@
               <label for="guestbook-message">Your Message</label>
               <textarea id="guestbook-message" placeholder="Leave a message... (max 500 chars)" maxlength="500"></textarea>
             </div>
-            <md-filled-button>
-              <md-icon slot="icon">edit</md-icon>
+            <md-filled-button id="submitGuestbookBtn">
+              <md-icon slot="icon">send</md-icon>
               Submit
             </md-filled-button>
           </div>
-          <div class="guestbook-entries"></div>
         </div>
-      </section>
+      </div>
     </main>
     
     <script type="module">

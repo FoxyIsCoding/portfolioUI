@@ -1,22 +1,52 @@
 export class Guestbook {
   constructor(containerId) {
     this.container = document.getElementById(containerId);
+    this.modal = document.getElementById('guestbookModal');
     this.entries = [];
     this.init();
   }
 
   async init() {
     this.loadEntries();
+    this.setupModal();
     this.setupForm();
   }
 
-  setupForm() {
-    const form = this.container.querySelector('.guestbook-form');
-    if (!form) return;
+  setupModal() {
+    const openBtn = document.getElementById('openGuestbookBtn');
+    const closeBtn = document.getElementById('closeGuestbookBtn');
+    const backdrop = this.modal.querySelector('.modal-backdrop');
 
-    const nameInput = form.querySelector('input[placeholder="Name"]');
-    const messageInput = form.querySelector('textarea');
-    const submitBtn = form.querySelector('md-filled-button');
+    openBtn?.addEventListener('click', () => this.openModal());
+    closeBtn?.addEventListener('click', () => this.closeModal());
+    backdrop?.addEventListener('click', () => this.closeModal());
+
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && this.modal.classList.contains('active')) {
+        this.closeModal();
+      }
+    });
+  }
+
+  openModal() {
+    this.modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+    
+
+    const nameInput = this.modal.querySelector('#guestbook-name');
+    setTimeout(() => nameInput?.focus(), 300);
+  }
+
+  closeModal() {
+    this.modal.classList.remove('active');
+    document.body.style.overflow = '';
+  }
+
+  setupForm() {
+    const submitBtn = document.getElementById('submitGuestbookBtn');
+    const nameInput = document.getElementById('guestbook-name');
+    const messageInput = document.getElementById('guestbook-message');
 
     submitBtn?.addEventListener('click', (e) => this.handleSubmit(e, nameInput, messageInput));
 
@@ -64,6 +94,7 @@ export class Guestbook {
       nameInput.value = '';
       messageInput.value = '';
 
+      this.closeModal();
       this.loadEntries();
       alert('Message submitted! Thanks for signing the guestbook :3');
     } catch (error) {

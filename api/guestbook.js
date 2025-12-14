@@ -41,7 +41,7 @@ async function addEntry(name, message) {
   const client = await pool.connect();
   try {
     const result = await client.query(
-      'INSERT INTO guestbook_entries (name, message) VALUES ($1, $2) RETURNING id, name, message, created_at',
+      'INSERT INTO guestbook_entries (name, message, approved, created_at) VALUES ($1, $2, true, NOW()) RETURNING id, name, message, created_at, approved',
       [name, message]
     );
     return result.rows[0];

@@ -1,4 +1,4 @@
-let BLOCKED_WORDS = [];
+let BLOCKED_PATTERNS = [];
 let profanityLoaded = false;
 
 async function loadProfanityList() {
@@ -7,12 +7,24 @@ async function loadProfanityList() {
   try {
     const response = await fetch('https://raw.githubusercontent.com/dsojevic/profanity-list/refs/heads/main/en.json');
     const data = await response.json();
-    BLOCKED_WORDS = Array.isArray(data) ? data : Object.keys(data);
+    
+
+    if (Array.isArray(data)) {
+      BLOCKED_PATTERNS = data
+        .filter(item => item.match)
+        .map(item => {
+        
+          const patterns = item.match.split('|').map(p => p.trim()).filter(p => p);
+          return patterns;
+        })
+        .flat();
+    }
+    
     profanityLoaded = true;
-    console.log(`Loaded ${BLOCKED_WORDS.length} profanity words`);
+    console.log(`Loaded ${BLOCKED_PATTERNS.length} profanity patterns`);
   } catch (error) {
     console.error('Failed to load profanity list:', error);
-    BLOCKED_WORDS = [];
+    BLOCKED_PATTERNS = [];
     profanityLoaded = true;
   }
 }
@@ -24,19 +36,19 @@ export async function checkAutomod(text) {
 
   const lowerText = text.toLowerCase();
   
-  for (const word of BLOCKED_WORDS) {
-    if (!word) continue;
-    try {
-      const escapedWord = word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      const regex = new RegExp(`\\b${escapedWord}\\b`, 'gi');
-      if (regex.test(lowerText)) {
-        return {
-          approved: false,
-          reason: 'Message contains inappropriate content'
-        };
-      }
-    } catch (e) {
-      continue;
+  for (const pattern of BLOCKED_PATTERNS) {
+    if (!pattern) continue;
+    
+
+    const normalizedPattern = pattern.toLowerCase();
+    const normalizedText = lowerText;
+    
+
+    if (normalizedText.includes(normalizedPattern)) {
+      return {
+        approved: false,
+        reason: 'Message contains inappropriate content'
+      };
     }
   }
 
